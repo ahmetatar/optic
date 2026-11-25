@@ -1,0 +1,11 @@
+{
+  "name": "optic",
+  "version": "0.2.0",
+  "description": "Keeps images away from Claude Code's API and lets Claude ask about them through GitHub Copilot CLI (Claude Opus) instead.",
+  "author": {
+    "name": "ahmetatar",
+    "url": "https://github.com/ahmetatar"
+  },
+  "homepage": "https://github.com/ahmetatar/optic",
+  "license": "MIT"
+}

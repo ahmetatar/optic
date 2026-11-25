@@ -1,0 +1,14 @@
+{
+  "name": "optic",
+  "owner": {
+    "name": "ahmetatar"
+  },
+  "plugins": [
+    {
+      "name": "optic",
+      "source": "./plugin",
+      "description": "Image guard + look skill (images go to Copilot, not to Claude Code's API)."
+    }
+  ],
+  "description": "optic: image guard + look skill for Claude Code (images go through GitHub Copilot CLI)."
+}

@@ -1,0 +1,33 @@
+#!/bin/bash
+# Ask Claude Opus (through GitHub Copilot CLI) about images or PDFs, so they never reach
+# Claude Code's own API. Prints the answer on stdout and the session id on stderr.
+#
+#   optic-look [-C DIR] FILE... -p PROMPT     new question; Copilot may read files under DIR (default: cwd)
+#   optic-look -s SESSION [FILE...] -p PROMPT follow-up in the same Copilot session
+#
+# Copilot can read files under DIR; shell, file writes, URLs and built-in MCP servers are off.
+set -euo pipefail
+
+dir=$PWD session="" prompt="" files=()
+while (($#)); do
+  case $1 in
+    -C) dir=$2; shift 2 ;;
+    -s) session=$2; shift 2 ;;
+    -p) prompt=$2; shift 2 ;;
+    -h|--help) sed -n '2,8p' "$0"; exit 0 ;;
+    -*) echo "optic-look: unknown option $1" >&2; exit 2 ;;
+    *) [[ -f $1 ]] || { echo "optic-look: no such file: $1" >&2; exit 2; }
+       files+=("$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"); shift ;;
+  esac
+done
+[[ -n $prompt ]] || { echo "optic-look: -p PROMPT is required" >&2; exit 2; }
+[[ -n $session || ${#files[@]} -gt 0 ]] || { echo "optic-look: give at least one FILE, or -s SESSION for a follow-up" >&2; exit 2; }
+dir=$(cd "$dir" && pwd)
+
+[[ -n $session ]] || session=$(uuidgen | tr '[:upper:]' '[:lower:]')
+args=(--model "${OPTIC_LOOK_MODEL:-claude-opus-5.5}" -C "$dir" --add-dir "$dir" --session-id "$session"
+  --silent --allow-tool read --deny-tool shell --deny-tool write --deny-tool url --disable-builtin-mcps)
+for f in ${files[@]+"${files[@]}"}; do args+=(--attachment "$f"); done
+
+echo "optic-look session: $session" >&2
+exec copilot "${args[@]}" -p "$prompt"
