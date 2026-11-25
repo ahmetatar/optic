@@ -111,7 +111,7 @@ case $event in
     exit 0 ;;
   UserPromptSubmit)
     if [[ $pasted == true ]]; then
-      echo "optic guard: pasted images are not sent to the model. The image is still on the clipboard: send the message again without pasting it and say the image is on the clipboard (Claude saves it with optic-clip and asks about it with optic-look)." >&2
+      echo "optic guard: pasted images are not sent to the model. optic saves it from the clipboard (optic-clip) and Claude answers through Copilot." >&2
       exit 2
     fi
     exit 0 ;;

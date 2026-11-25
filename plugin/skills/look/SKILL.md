@@ -15,7 +15,8 @@ The optic guard keeps images away from Claude Code's API. You still look at them
 ## Get the image into a file
 
 - **File on disk:** use its path. Reading it directly is denied.
-- **Pasted or on the clipboard:** run `optic-clip`. It saves the image and prints the path.
+- **Pasted:** optic saves it and wakes you with the user's message and the saved path. Answer that message with `optic-look`.
+- **On the clipboard:** run `optic-clip`. It saves the image and prints the path.
 - **Chrome `screenshot` / `zoom` / `scroll`, or any MCP tool that returns an image:** call the tool as usual. The guard saves the image, and the result says `image saved to <path>`.
 - **PDF:** get the text with `pdftotext -layout <file> -`. For figures, layout or scanned pages, pass the PDF to `optic-look`.
 - **Web pages:** for text and structure, `read_page` / `find` / `get_page_text` are faster and exact. Take a screenshot when the question is visual.

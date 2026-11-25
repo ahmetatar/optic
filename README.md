@@ -16,6 +16,7 @@ Copilot can read the project's files, so Claude can ask the question with full c
 | Part | What it does |
 |---|---|
 | `plugin/hooks/guard.sh` | **PreToolUse `Read`:** denies images and PDFs, by extension or by magic bytes. **PostToolUse `mcp__*`:** saves image blocks (Chrome screenshots, etc.) to `~/.optic/captures/` and replaces them with their paths. **UserPromptSubmit:** blocks prompts with a pasted image. Fails closed. |
+| `plugin/hooks/paste.sh` | Async `UserPromptSubmit` hook (`asyncRewake`). When a prompt with a pasted image is blocked, it saves the clipboard image with `optic-clip` and wakes Claude with the blocked message and the saved path, so Claude answers it through `optic-look` without the user resending. |
 | `plugin/bin/optic-look` | `copilot --model claude-opus-5.5 --attachment …`. Copilot may read files under the project dir. Shell, file writes, URLs and built-in MCP servers are off. `-s <id>` asks a follow-up in the same session. |
 | `plugin/bin/optic-clip` | Saves the clipboard image and prints its path. |
 | `plugin/skills/look/SKILL.md` | Tells Claude when and how to use the above, including how to write a question with full context. |
@@ -43,6 +44,7 @@ To turn it off later: `claude plugin disable optic@optic`.
 ## Limits
 
 - Only `Read`, MCP tool results and pasted images are covered. Other ways an image could reach the API (for example WebFetch of an image URL, or notebook outputs) are not handled.
+- A pasted image is taken from the clipboard after submit. If several images are pasted, only the one still on the clipboard (usually the last) is saved; if the clipboard changed, Claude asks for the image again.
 - Captures in `~/.optic/captures/` are not cleaned up automatically.
 - Sizes, colours and pixel positions in Copilot's answers are model estimates.
 

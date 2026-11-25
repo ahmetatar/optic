@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tests for plugin/hooks/guard.sh. Run: tests/guard.test.sh
+# Tests for plugin/hooks/guard.sh and paste.sh. Run: tests/guard.test.sh
 set -u
 GUARD=$(cd "$(dirname "$0")/.." && pwd)/plugin/hooks/guard.sh
 T=$(mktemp -d)
@@ -69,6 +69,23 @@ run "$(up 'compare [Image #12] and [Image #13]')"; if [[ $CODE == 2 ]]; then ok;
 for p in 'no image here' '[Image #] x' '[Image #a1] x' 'Image #1' '[image #1]'; do
   run "$(up "$p")"; expect_allow "prompt '$p'"
 done
+
+# --- UserPromptSubmit: paste.sh (async wake-up) ---
+PASTE=${GUARD%/guard.sh}/paste.sh
+mkdir -p "$T/root/bin"
+clip() { printf '#!/bin/bash\n%s\n' "$1" >"$T/root/bin/optic-clip"; chmod +x "$T/root/bin/optic-clip"; }
+paste() { OUT=$(printf '%s' "$1" | CLAUDE_PLUGIN_ROOT=$T/root "$PASTE" 2>"$T/err"); CODE=$?; ERR=$(cat "$T/err"); }
+clip 'echo /caps/clip-1.png'
+paste "$(up '[Image #1] why is the button red?')"
+if [[ $CODE == 2 && $ERR == *"optic-look /caps/clip-1.png"* && $ERR == *"(pasted image 1) why is the button red?"* ]]; then ok; else bad "paste wakes Claude with path and message"; fi
+wake=$ERR
+run "$(up "$wake")"; expect_allow "wake-up text passes the guard (no block/wake loop)"
+paste "$(up "$wake")"; if [[ $CODE == 0 ]]; then ok; else bad "wake-up text does not wake again"; fi
+paste "$(jq -nc '{hook_event_name: "UserPromptSubmit", source: "system", prompt: "[Image #1] x"}')"; if [[ $CODE == 0 ]]; then ok; else bad "non-user source ignored"; fi
+paste "$(up '[Image #1] vs [Image #2]')"; if [[ $CODE == 2 && $ERR == *"Only the image still on the clipboard"* ]]; then ok; else bad "several images: says only one was saved"; fi
+clip 'exit 1'
+paste "$(up '[Image #1] x')"; if [[ $CODE == 2 && $ERR == *"no longer holds an image"* && $ERR != *optic-look* ]]; then ok; else bad "empty clipboard: asks the user again"; fi
+paste "$(up 'no image')"; if [[ $CODE == 0 && -z $ERR ]]; then ok; else bad "no image: nothing"; fi
 
 # --- PostToolUse MCP images ---
 PNG_B64=$(base64 <"$T/png")

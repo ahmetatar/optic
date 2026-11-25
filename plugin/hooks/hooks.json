@@ -7,7 +7,10 @@
       { "matcher": "mcp__.*", "hooks": [ { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/guard.sh\"" } ] }
     ],
     "UserPromptSubmit": [
-      { "hooks": [ { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/guard.sh\"" } ] }
+      { "hooks": [
+        { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/guard.sh\"" },
+        { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/paste.sh\"", "asyncRewake": true }
+      ] }
     ]
   }
 }
